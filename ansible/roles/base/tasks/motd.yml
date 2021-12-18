@@ -1,0 +1,23 @@
+---
+- name: Create backup directory for MOTD files
+  file:
+    path: /etc/update-motd.d.old
+    state: directory
+    owner: root
+    group: root
+
+- name: Move unwanted MOTD files
+  command: "mv /etc/update-motd.d/{{ item }} /etc/update-motd.d.old/"
+  loop:
+    - 10-help-text
+    - 50-motd-news
+    - 80-esm
+    - 80-livepatch
+
+- name: Add in our custom MOTD file
+  template:
+    src: cloudcasts.motd.j2
+    dest: /etc/update-motd.d/cloudcasts
+    owner: root
+    group: root
+    mode: u=rwx,go=rx

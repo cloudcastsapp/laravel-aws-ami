@@ -1,0 +1,89 @@
+{
+    "variables": {
+      "aws_profile": "cloudcasts",
+      "aws_region": "us-east-2"
+    },
+    "min_packer_version": "1.7.0",
+    "builders": [
+      {
+        "ami_description": "Ubuntu 20.04 x86_64 AMI for Laravel",
+        "ami_name": "laravel-ubuntu20-ami-{{isotime | clean_resource_name}}",
+        "instance_type": "t3.small",
+        "name": "laravel-ubuntu20-x86_64-ami",
+        "profile": "{{user `aws_profile`}}",
+        "region": "{{user `aws_region`}}",
+        "tags": {
+            "Name": "laravel-ubuntu20-x86_64-ami-{{isotime | clean_resource_name}}",
+            "Project": "Laravel AMI",
+            "ManagedBy": "cloudcasts"
+        },
+        "source_ami_filter": {
+          "filters": {
+            "architecture": "x86_64",
+            "block-device-mapping.volume-type": "gp3",
+            "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-20.04-amd64-server-*",
+            "root-device-type": "ebs",
+            "virtualization-type": "hvm"
+          },
+          "most_recent": true,
+          "owners": [
+            "099720109477"
+          ]
+        },
+        "ssh_username": "ubuntu",
+        "type": "amazon-ebs"
+      },
+      {
+        "ami_description": "Ubuntu 20.04 ARM64 AMI for Laravel",
+        "ami_name": "laravel-ubuntu20-arm64-ami-{{isotime | clean_resource_name}}",
+        "instance_type": "t3.small",
+        "name": "laravel-ubuntu20-arm64-ami",
+        "profile": "{{user `aws_profile`}}",
+        "region": "{{user `aws_region`}}",
+        "tags": {
+            "Name": "laravel-ubuntu20-arm64-ami-{{isotime | clean_resource_name}}",
+            "Project": "Laravel AMI",
+            "ManagedBy": "cloudcasts"
+        },
+        "source_ami_filter": {
+          "filters": {
+            "architecture": "arm64",
+            "block-device-mapping.volume-type": "gp3",
+            "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-20.04-arm64-server-*",
+            "root-device-type": "ebs",
+            "virtualization-type": "hvm"
+          },
+          "most_recent": true,
+          "owners": [
+            "099720109477"
+          ]
+        },
+        "ssh_username": "ubuntu",
+        "type": "amazon-ebs"
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "script": "scripts/base.sh"
+      },
+      {
+        "type": "ansible-local",
+        "playbook_file": "ansible/run.yml",
+        "command": "ansible-playbook",
+        "role_paths": [
+          "ansible/roles/base",
+          "ansible/roles/awscli",
+          "ansible/roles/certbot",
+          "ansible/roles/cloudwatch",
+          "ansible/roles/fail2ban",
+          "ansible/roles/nginx",
+          "ansible/roles/php",
+          "ansible/roles/swap"
+        ],
+        "extra_arguments": ["--extra-vars \"aws_region={{user `aws_region`}}\""],
+        "group_vars": "ansible/group_vars"
+      }
+    ]
+  }
+  

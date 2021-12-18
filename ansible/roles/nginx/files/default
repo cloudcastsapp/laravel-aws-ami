@@ -1,0 +1,25 @@
+server {
+    listen 80 default_server;
+
+    root /home/ubuntu/app.chipperci.com/public;
+
+    index index.html index.htm index.php;
+
+    server_name _;
+
+    charset utf-8;
+
+    include h5bp/basic.conf;
+
+    access_log /var/log/nginx/dev.chipperci.com.log chipperci;
+    error_log /var/log/nginx/dev.chipperci.com-error.log error;
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+       include snippets/fastcgi-php.conf;
+       fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+    }
+}

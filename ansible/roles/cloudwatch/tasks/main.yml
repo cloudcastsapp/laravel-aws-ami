@@ -1,0 +1,18 @@
+---
+- name: Install CloudWatch Agent x86_64
+  apt:
+    deb: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
+    state: present
+  when: ansible_architecture == "x86_64"
+
+- name: Install CloudWatch Agent ARM64
+  apt:
+    deb: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/arm64/latest/amazon-cloudwatch-agent.deb
+    state: present
+  when: ansible_architecture == "aarch64"
+
+- name: Add Disabled CloudWatch Agent App Config
+  template:
+    src: agent-config-web.json.j2
+    dest: /opt/aws/amazon-cloudwatch-agent/etc/agent-config-app.json
+    # dest: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d/agent-config-app.json

@@ -1,0 +1,12 @@
+---
+###
+## Install Certbot
+#
+- name: Add Certbot Repository
+  apt_repository: repo='ppa:certbot/certbot' state=present
+
+- name: Install Certbot
+  apt:
+    pkg: ['certbot']
+    state: latest
+    update_cache: true

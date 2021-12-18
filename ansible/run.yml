@@ -1,0 +1,15 @@
+---
+- hosts: all
+  user: ubuntu
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - base
+    - awscli
+    - certbot
+    - cloudwatch
+    - fail2ban
+    - nginx
+    - php
+    - swap

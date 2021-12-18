@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# This file will be used within builder servers
+# to deploy a new version of the application.
+# This will be called from a forge/app server.
+
+# We require the release parameter to now where to download the latest release
+if [ $# -eq 0 ]; then
+    >&2 echo -n "No deployment parameter was passed. Deployment parameter expected is a git commit sha, eg '/opt/deploy-builder.sh abcdefgh'"
+    exit 1;
+fi
+
+# Anything that fails from here on should stop the script
+set -e
+
+# Move old chipper out of the way
+cd /home/chipper/chipperci.com
+sudo -u chipper git fetch origin --prune
+sudo -u chipper git checkout $1
+
+# Install composer deps
+sudo -H -u chipper bash -c "composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev"
+
+# Copy down env file
+sudo -u chipper aws s3 cp s3://chipperci-env-{{ chipper_env }}/env-{{ chipper_env }}-builds .env
+
+# Copy down github app key
+{% if chipper_env == 'production' %}
+sudo -u chipper aws s3 cp s3://chipperci-deploy-{{ chipper_env }}/chipper-ci.2019-08-19.private-key.pem storage/chipper-ci.2019-08-19.private-key.pem
+{% endif %}
+
+{% if chipper_env == 'staging' %}
+sudo -u chipper aws s3 cp s3://chipperci-deploy-{{ chipper_env }}/chipperci-staging.2019-08-19.private-key.pem storage/chipperci-staging.2019-08-19.private-key.pem
+{% endif %}
+
+# Complete deploy steps (clear any cache and recreate them)
+if [ -f bootstrap/cache/packages.php ]; then
+    sudo -u chipper rm bootstrap/cache/packages.php
+fi
+if [ -f bootstrap/cache/services.php ]; then
+    sudo -u chipper rm bootstrap/cache/services.php
+fi
+if [ -f bootstrap/cache/config.php ]; then
+    sudo -u chipper rm bootstrap/cache/config.php
+fi
+
+sudo -u chipper php artisan config:cache
+
+# Restart Workers
+sudo -u chipper php artisan queue:restart

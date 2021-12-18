@@ -1,0 +1,57 @@
+---
+# See http://askubuntu.com/questions/146921/how-do-i-apt-get-y-dist-upgrade-without-a-grub-config-prompt
+- name: Perform Safe Upgrade
+  shell: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+
+- name: Autoremove Unused Packages
+  apt:
+    autoremove: yes
+  ignore_errors: yes
+
+- name: Install Server Basics
+  apt:
+    pkg: [
+      "software-properties-common", 
+      "acl", 
+      "unattended-upgrades", 
+      "policykit-1", 
+      "ntp", 
+      "wget", 
+      "curl", 
+      "vim", 
+      "silversearcher-ag", 
+      "git", 
+      "unzip", 
+      "htop", 
+      "tmux", 
+      "pigz", 
+      "jq",
+      "pv",
+      "mysql-client",
+      "postgresql-client"
+    ]
+    state: present
+    update_cache: true
+  notify:
+    - Start NTP
+
+- name: Add Periodic Configuration
+  copy:
+    src: 10periodic
+    dest: /etc/apt/apt.conf.d/10periodic
+    owner: root
+    group: root
+
+- name: Add Unattended Upgrade Configuration
+  copy:
+    src: 50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+  notify:
+   - Restart Unattended Upgrades
+
+- include: motd.yml

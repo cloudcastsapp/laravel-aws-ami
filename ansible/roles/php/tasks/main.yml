@@ -1,0 +1,48 @@
+---
+- name: Add PHP Repository
+  apt_repository: repo='ppa:ondrej/php' state=present
+
+- name: Install PHP and PHP-FPM
+  apt:
+    pkg: ['php7.3-fpm','php7.3-cli','php7.3-mysql','php7.3-sqlite3','php7.3-curl','php7.3-gd','php-memcached','php7.3-intl','php7.3-imap','php7.3-ldap','php7.3-mbstring','php7.3-xml','php7.3-zip','php7.3-bz2','php7.3-imagick','php7.3-bcmath','php7.3-soap','php7.3-readline','php-msgpack','php-igbinary', 'php-redis']
+    state: present
+    update_cache: true
+
+- name: Install Composer
+  shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+- name: Make Composer Executable
+  shell: chmod a+x /usr/local/bin/composer
+
+- name: Composer Self Update
+  shell: composer self-update
+
+- name: Add PHP-FPM PHP Configuration
+  copy:
+    src: php.ini
+    dest: /etc/php/7.3/fpm/php.ini
+    owner: root
+    group: root
+
+- name: Add PHP-FPM Pool Configuration
+  template:
+    src: www.conf.j2
+    dest: /etc/php/7.3/fpm/pool.d/www.conf
+    owner: root
+    group: root
+
+- name: Add Deploy Builder Script
+  template:
+    src: deploy-builder.sh.j2
+    dest: /opt/deploy-builder.sh
+    owner: root
+    group: root
+    mode: ugo+x
+
+- name: Add Deploy App Script (meant to run on Forge server)
+  template:
+    src: forge-deploy-builders.sh.j2
+    dest: /opt/deploy-builders.sh
+    owner: root
+    group: root
+    mode: ugo+x

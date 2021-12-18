@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# This script will be used within a Forge server to deploy builder servers that are currently running
+# This script takes a single argument - the commit sha being deployed
+IPS=$(aws --region=us-east-2 ec2 describe-instances --filters Name=tag:Role,Values=build Name=instance-state-code,Values=16 Name=tag:Environment,Values={{ chipper_env }} | jq -r ".Reservations[] | .Instances[] | .PrivateIpAddress")
+
+for builderip in $(echo "$IPS"); do
+    ssh -i ~/.ssh/id_ed -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" ubuntu@$builderip /opt/deploy-builder.sh $1
+done

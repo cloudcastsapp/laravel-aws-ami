@@ -1,0 +1,43 @@
+- name: Add Nginx Repository
+  apt_repository:
+    repo: ppa:nginx/development
+    state: present
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Add H5BP Config
+  copy:
+    src: h5bp
+    dest: /etc/nginx
+    owner: root
+    group: root
+
+- name: Add Nginx Config
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+
+- name: Add Nginx Mime Types
+  copy:
+    src: mime.types
+    dest: /etc/nginx/mime.types
+    owner: root
+    group: root
+
+- name: Add Site Config
+  copy:
+    src: default
+    dest: /etc/nginx/sites-available/default
+    owner: root
+    group: root
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
